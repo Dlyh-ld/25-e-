@@ -1,17 +1,20 @@
 #define WHEEL_DIA 4.5
 
-#define MOTOR_KP 500.0f;
-#define MOTOR_KI 1.0f;
-#define MOTOR_KD 0.2f;
-#define MOTOR_MaxIout 500.0f;
-#define MOTOR_MaxOut 10000.0f;
-#define MOTOR_MinOut 
+#define KEY_DEBOUNCE_MS 20U
 
-#define GIMBAL_KP 250.0f;
-#define GIMBAL_KI 0.0f;
-#define GIMBAL_KD 0.4f;
-#define GIMBAL_MaxIout 0;
-#define GIMBAL_MaxOut 1000.0f;
+#define MOTOR_KP 500.0f
+#define MOTOR_KI 1.0f
+#define MOTOR_KD 0.2f
+#define MOTOR_MaxIout 500.0f
+#define MOTOR_MaxOut 10000.0f
+#define MOTOR_MinOut 1000.0f
+#define MOTOR_TARGET_SPEED 6000.0f
+
+#define GIMBAL_KP 250.0f
+#define GIMBAL_KI 0.0f
+#define GIMBAL_KD 0.4f
+#define GIMBAL_MaxIout 0
+#define GIMBAL_MaxOut 1000.0f
 
 
 typedef enum{
