@@ -1,0 +1,32 @@
+# CCS build output
+Debug/
+Release/
+*.out
+*.map
+*.o
+*.obj
+*.d
+*.d_raw
+*.pp
+*.opt
+*.genlibs
+*.dot
+
+# SysConfig generated files
+Debug/sysconfig/
+
+# CCS local settings
+.settings/
+.launch/
+.launches/
+*.launch
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs / backups
+*.log
+*.bak
