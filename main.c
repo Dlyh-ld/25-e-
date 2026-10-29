@@ -4,13 +4,12 @@
  */
 
 #include "ti_msp_dl_config.h"
-#include "bsp/OLED.h"
+#include "bsp/OLED/oled.h"
+#include "delay.h"
 
 int main(void)
 {
-    SYSCFG_DL_init();
 
-    DL_GPIO_setPins(LED_PORT,LED_LED1_PIN);
 
     while (1) {
     }
