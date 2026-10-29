@@ -6,3 +6,7 @@ void delay_ms(int ms){
         delay_cycles(320000 / 1000 * ms);
     }
 }
+
+void delay_us(int us){
+    delay_cycles(32000000 / 1000000 * us);
+}
