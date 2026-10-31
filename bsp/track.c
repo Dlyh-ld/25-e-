@@ -66,8 +66,12 @@ int16_t Track_CalcError(uint8_t bits)
     }
 
     if (count == 0U) {
-        return 0;
+        return TRACK_LOST;
     }
 
-    return (int16_t)(sum / count);
+    if (count == TRACK_CHANNEL_NUM) {
+        return TRACK_ALL_ON;
+    }
+
+    return (int16_t)((sum * (int16_t)TRACK_ERROR_SCALE) / count);
 }

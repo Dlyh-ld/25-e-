@@ -2,17 +2,27 @@
 
 #define KEY_DEBOUNCE_MS 20U
 
-#define MOTOR_KP 500.0f
-#define MOTOR_KI 1.0f
-#define MOTOR_KD 0.2f
-#define MOTOR_MaxIout 500.0f
-#define MOTOR_MaxOut 10000.0f
-#define MOTOR_MinOut 1000.0f
-#define MOTOR_TARGET_SPEED 6000.0f
+#define LINEAR_SPEED = 600U;
+#define TURN_SPEED = 390U;
+
+#define TRACK_KP          0.03f
+#define TRACK_KI          0.0f
+#define TRACK_KD          0.10f
+
+#define SPEED_KP       30.0f
+#define SPEED_KI       1.0f
+#define SPEED_KD       0.0f
+
+#define MOTOR_MaxIout     400U
+#define MOTOR_MaxOut      1600U
+#define MOTOR_MinOut      180U
+
+
 
 #define GIMBAL_KP 250.0f
 #define GIMBAL_KI 0.0f
 #define GIMBAL_KD 0.4f
+
 #define GIMBAL_MaxIout 0
 #define GIMBAL_MaxOut 1000.0f
 
@@ -25,15 +35,9 @@ typedef enum{
 } MODE_t;
 
 typedef enum{
-    GIMBAL_YAW = 0,
+    GIMBAL_YAW = 1,
     GIMBAL_PITCH
 } GIMBAL_t;
-
-typedef enum{
-    MOTOR_LEFT = 0,
-    MOTOR_RIGHT
-} MOTOR_c;
-
 
 
 #define Max(a, b) ((a) > (b) ? (a) : (b))

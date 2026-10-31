@@ -292,6 +292,31 @@ void OLED_ShowNum(u8 x, u8 y, u32 num, u8 len, u8 size1, u8 mode)
     }
 }
 
+void OLED_ShowSignedNum(u8 x, u8 y, int32_t num, u8 len, u8 size1, u8 mode)
+{
+    u8 step = (size1 == 8U) ? 6U : (size1 / 2U);
+
+    if (num >= 0) {
+        OLED_ShowChar(x, y, '+', size1, mode);
+    } else {
+        OLED_ShowChar(x, y, '-', size1, mode);
+        num = -num;
+    }
+
+    OLED_ShowNum((u8)(x + step), y, (u32)num, len, size1, mode);
+}
+
+void OLED_ShowBinNum(u8 x, u8 y, u32 num, u8 len, u8 size1, u8 mode)
+{
+    u8 i;
+    u8 step = (size1 == 8U) ? 6U : (size1 / 2U);
+
+    for (i = 0U; i < len; i++) {
+        u8 bit = (u8)((num >> (len - i - 1U)) & 0x01U);
+        OLED_ShowChar((u8)(x + step * i), y, (u8)(bit + '0'), size1, mode);
+    }
+}
+
 void OLED_ShowChinese(u8 x, u8 y, u8 num, u8 size1, u8 mode)
 {
     u8 m;

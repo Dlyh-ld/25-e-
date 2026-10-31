@@ -28,6 +28,8 @@ void OLED_DrawCircle(u8 x, u8 y, u8 r);
 void OLED_ShowChar(u8 x, u8 y, u8 chr, u8 size1, u8 mode);
 void OLED_ShowString(u8 x, u8 y, const char *chr, u8 size1, u8 mode);
 void OLED_ShowNum(u8 x, u8 y, u32 num, u8 len, u8 size1, u8 mode);
+void OLED_ShowSignedNum(u8 x, u8 y, int32_t num, u8 len, u8 size1, u8 mode);
+void OLED_ShowBinNum(u8 x, u8 y, u32 num, u8 len, u8 size1, u8 mode);
 void OLED_ShowChinese(u8 x, u8 y, u8 num, u8 size1, u8 mode);
 void OLED_ShowPicture(u8 x, u8 y, u8 sizex, u8 sizey, const u8 *BMP, u8 mode);
 void OLED_Init(void);

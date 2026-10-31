@@ -11,6 +11,9 @@
 #define TRACK_CHANNEL_NUM 8U
 #define TRACK_SETTLE_US   20U
 #define TRACK_LINE_BLACK  1U
+#define TRACK_ERROR_SCALE 100U
+#define TRACK_ALL_ON      0x7E
+#define TRACK_LOST        0x7F
 
 void Track_Init(void);
 uint8_t Track_ReadBit(uint8_t ch);

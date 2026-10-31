@@ -12,7 +12,8 @@ void PID_Init(PID_t *pid, float kp, float ki, float kd, float imax, float omax)
     pid->OMAX = omax;
     
     pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
-    pid->error[0] = pid->error[0] = pid->error[0] = pid->OUT = pid->POUT = pid->IOUT = pid->DOUT = 0.0f;
+    pid->error[0] = pid->error[1] = pid->error[2] = 0.0f;
+    pid->OUT = pid->POUT = pid->IOUT = pid->DOUT = 0.0f;
 }
 
 
@@ -32,9 +33,9 @@ float PID_CALE(PID_t *pid, float set, float fbd)
     pid->Dbuf[1] = pid->Dbuf[0];
     pid->Dbuf[0] = (pid->error[0] - 2.0f * pid->error[1] + pid->error[2]);
     pid->DOUT = pid->KD * pid->Dbuf[0];
-    pid->IOUT = Max(pid->IOUT,pid->IMAX);
+    pid->IOUT = Min(Max(pid->IOUT, -(float)pid->IMAX), (float)pid->IMAX);
     pid->OUT = pid->POUT + pid->IOUT + pid->DOUT;
-    pid->OUT = Max(pid->OUT, pid->OMAX);
+    pid->OUT = Min(Max(pid->OUT, -(float)pid->OMAX), (float)pid->OMAX);
 
     return pid->OUT;
 }
