@@ -1,35 +1,45 @@
-#ifndef PID_H_
-#define PID_H_
+#ifndef PID_H
+#define PID_H
 
+#include <stdint.h>
 
-typedef struct{
-    float KP;
-    float KI;
-    float KD;
+#ifndef FP32_DEFINED
+#define FP32_DEFINED
+typedef float fp32;
+#endif
 
-    float Dbuf[3];
-    float error[3];
+enum PID_MODE {
+    PID_POSITION = 0,
+    PID_DELTA
+};
 
-    int IMAX;
-    int OMAX;
+typedef struct {
+    uint8_t mode;
 
-    float set;
-    float fbd;
+    fp32 Kp;
+    fp32 Ki;
+    fp32 Kd;
 
-    float OUT;
-    float POUT;
-    float IOUT;
-    float DOUT;
+    /* [0,1] low-pass coefficient, 0 means no filtering on derivative. */
+    fp32 N;
 
-} PID_t;
+    fp32 max_out;
+    fp32 max_iout;
 
+    fp32 set;
+    fp32 fdb;
 
+    fp32 out;
+    fp32 Pout;
+    fp32 Iout;
+    fp32 Dout;
+    fp32 Dbuf[3];
+    fp32 error[3];
+} pid_type_def;
 
-void PID_Init(PID_t *pid, float kp, float ki, float kd, float imax, float omax);
-float PID_CALE(PID_t *pid, float set, float fbd);
-
-
-
-
+void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3],
+              fp32 max_out, fp32 max_iout);
+fp32 PID_calc(pid_type_def *pid, fp32 actual, fp32 target);
+void PID_clear(pid_type_def *pid);
 
 #endif

@@ -73,5 +73,5 @@ int16_t Track_CalcError(uint8_t bits)
         return TRACK_ALL_ON;
     }
 
-    return (int16_t)((sum * (int16_t)TRACK_ERROR_SCALE) / count);
+    return (int16_t)(sum / (int16_t)count);   /* 加权平均，范围 -7..7 */
 }

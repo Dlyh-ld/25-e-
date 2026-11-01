@@ -8,7 +8,7 @@ MOTOR_t gMotorRight;
 
 
 
-void Motor_Init(MOTOR_t *motor, uint32_t port, uint32_t in1, uint32_t in2, uint32_t cc_idx, GPTIMER_Regs *enc_timer)
+void Motor_Init(MOTOR_t *motor, GPIO_Regs *port, uint32_t in1, uint32_t in2, uint32_t cc_idx, GPTIMER_Regs *enc_timer)
 {
     if (motor == NULL) {
         return;
@@ -20,11 +20,13 @@ void Motor_Init(MOTOR_t *motor, uint32_t port, uint32_t in1, uint32_t in2, uint3
     motor->PWM_CC_INDEX = cc_idx;
     motor->ENC_TIM = enc_timer;
 
-    motor->ACTURL_SPEED = 0.0f;
+    motor->ACTUAL_SPEED = 0.0f;
     motor->CURRENT_ENC = 0;
     motor->LAST_ENC = 0;
 
-    DL_GPIO_clearPins((GPIO_Regs *)motor->GPIO_PORT, motor->PIN_IN_1 | motor->PIN_IN_2);
+     DL_GPIO_clearPins(GPIO_MOTOR_DIR_PORT, GPIO_MOTOR_DIR_STBY_PIN);
+
+    DL_GPIO_clearPins(motor->GPIO_PORT, motor->PIN_IN_1 | motor->PIN_IN_2);
     DL_TimerA_setCaptureCompareValue(MOTOR_PWM_INST, 0, (DL_TIMER_CC_INDEX)motor->PWM_CC_INDEX);
 
     DL_TimerA_startCounter(MOTOR_PWM_INST);
@@ -33,43 +35,43 @@ void Motor_Init(MOTOR_t *motor, uint32_t port, uint32_t in1, uint32_t in2, uint3
 
 void Motor_SetSpeed(MOTOR_t *motor, float speed)
 {
-    uint32_t duty;
-
-    DL_GPIO_setPins(GPIO_MOTOR_DIR_PORT, GPIO_MOTOR_DIR_STBY_PIN);
-
+    uint8_t reverse;
 
     if (motor == NULL) {
         return;
     }
 
+    DL_GPIO_setPins(GPIO_MOTOR_DIR_PORT, GPIO_MOTOR_DIR_STBY_PIN);
 
-    if (speed > 0.0f) {
-        DL_GPIO_setPins((GPIO_Regs *)motor->GPIO_PORT, motor->PIN_IN_1);
-        DL_GPIO_clearPins((GPIO_Regs *)motor->GPIO_PORT, motor->PIN_IN_2);
-    } else if (speed < 0.0f) {
-        DL_GPIO_clearPins((GPIO_Regs *)motor->GPIO_PORT, motor->PIN_IN_1);
-        DL_GPIO_setPins((GPIO_Regs *)motor->GPIO_PORT, motor->PIN_IN_2);
-    } else {
-        DL_GPIO_clearPins((GPIO_Regs *)motor->GPIO_PORT,
-                          motor->PIN_IN_1 | motor->PIN_IN_2);
-    }
-
+    /* 先取绝对值、死区、限幅，得到最终 PWM */
+    reverse = (speed < 0.0f) ? 1U : 0U;
     if (speed < 0.0f) {
         speed = -speed;
     }
-    if (speed > MOTOR_MaxOut) {
+    if (speed < MOTOR_MinOut) {
+        speed = 0.0f;
+    } else if (speed > MOTOR_MaxOut) {
         speed = MOTOR_MaxOut;
     }
-    duty = (uint32_t)((speed * (float)MOTOR_PWM_PERIOD) / MOTOR_MaxOut);
-    if (duty > MOTOR_PWM_PERIOD) {
-        duty = MOTOR_PWM_PERIOD;
+
+    /* 再按方向设置方向脚 */
+    if (speed == 0.0f) {
+        DL_GPIO_clearPins(motor->GPIO_PORT,
+                          motor->PIN_IN_1 | motor->PIN_IN_2);
+    } else if (reverse != 0U) {
+        DL_GPIO_clearPins(motor->GPIO_PORT, motor->PIN_IN_1);
+        DL_GPIO_setPins(motor->GPIO_PORT, motor->PIN_IN_2);
+    } else {
+        DL_GPIO_setPins(motor->GPIO_PORT, motor->PIN_IN_1);
+        DL_GPIO_clearPins(motor->GPIO_PORT, motor->PIN_IN_2);
     }
 
-    DL_TimerA_setCaptureCompareValue(MOTOR_PWM_INST, duty, (DL_TIMER_CC_INDEX)motor->PWM_CC_INDEX);
+    DL_TimerA_setCaptureCompareValue(MOTOR_PWM_INST, (uint32_t)speed,
+                                     (DL_TIMER_CC_INDEX)motor->PWM_CC_INDEX);
+
     if (motor->ENC_TIM != NULL) {
         DL_Timer_startCounter(motor->ENC_TIM);
     }
-
 }
 
 
@@ -81,19 +83,22 @@ void Motor_Stop(MOTOR_t *motor)
 
     motor->TARGET_SPEED = 0.0f;
 
-    DL_GPIO_setPins((GPIO_Regs *)motor->GPIO_PORT, motor->PIN_IN_1 | motor->PIN_IN_2);
+    DL_GPIO_clearPins(motor->GPIO_PORT, motor->PIN_IN_1 | motor->PIN_IN_2);
 
     DL_TimerA_setCaptureCompareValue(MOTOR_PWM_INST, 0, (DL_TIMER_CC_INDEX)motor->PWM_CC_INDEX);
 }
 
 void Motor_UpdateEncoder(MOTOR_t *motor)
 {
+    int32_t cur;
+
     if (motor == NULL) {
         return;
     }
 
-    motor->ACTURL_SPEED = (float)(motor->CURRENT_ENC - motor->LAST_ENC);
-    motor->LAST_ENC = motor->CURRENT_ENC;
+    cur = motor->CURRENT_ENC;                             /* 单次原子读 */
+    motor->ACTUAL_SPEED = (float)(cur - motor->LAST_ENC); /* ticks/采样周期 */
+    motor->LAST_ENC = cur;
 }
 
 

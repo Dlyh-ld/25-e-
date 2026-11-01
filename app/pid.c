@@ -1,41 +1,84 @@
-#include "ti_msp_dl_config.h"
-#include "param.h"
 #include "pid.h"
+#include <stddef.h>
 
-void PID_Init(PID_t *pid, float kp, float ki, float kd, float imax, float omax)
+#define LimitMax(input, max)       \
+    {                              \
+        if (input > max) {         \
+            input = max;           \
+        } else if (input < -max) { \
+            input = -max;          \
+        }                          \
+    }
+
+void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3],
+              fp32 max_out, fp32 max_iout)
 {
-    pid->KP = kp;
-    pid->KI = ki;
-    pid->KD = kd;
+    if (pid == NULL || PID == NULL) {
+        return;
+    }
 
-    pid->IMAX = imax;
-    pid->OMAX = omax;
-    
+    pid->mode = mode;
+    pid->Kp = PID[0];
+    pid->Ki = PID[1];
+    pid->Kd = PID[2];
+    pid->N = 0.0f;
+    pid->max_out = max_out;
+    pid->max_iout = max_iout;
     pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
     pid->error[0] = pid->error[1] = pid->error[2] = 0.0f;
-    pid->OUT = pid->POUT = pid->IOUT = pid->DOUT = 0.0f;
+    pid->Pout = pid->Iout = pid->Dout = pid->out = 0.0f;
 }
 
-
-float PID_CALE(PID_t *pid, float set, float fbd)
+fp32 PID_calc(pid_type_def *pid, fp32 actual, fp32 target)
 {
     if (pid == NULL) {
         return 0.0f;
     }
+
     pid->error[2] = pid->error[1];
     pid->error[1] = pid->error[0];
-    pid->set = set;
-    pid->fbd = fbd;
-    pid->error[0] = set - fbd;
-    pid->POUT = pid->KP * pid->error[0];
-    pid->IOUT += pid->KI * pid->error[0];
-    pid->Dbuf[2] = pid->Dbuf[1];
-    pid->Dbuf[1] = pid->Dbuf[0];
-    pid->Dbuf[0] = (pid->error[0] - 2.0f * pid->error[1] + pid->error[2]);
-    pid->DOUT = pid->KD * pid->Dbuf[0];
-    pid->IOUT = Min(Max(pid->IOUT, -(float)pid->IMAX), (float)pid->IMAX);
-    pid->OUT = pid->POUT + pid->IOUT + pid->DOUT;
-    pid->OUT = Min(Max(pid->OUT, -(float)pid->OMAX), (float)pid->OMAX);
+    pid->set = target;
+    pid->fdb = actual;
+    pid->error[0] = target - actual;
 
-    return pid->OUT;
+    if (pid->mode == PID_POSITION) {
+        pid->Pout = pid->Kp * pid->error[0];
+        pid->Iout += pid->Ki * pid->error[0];
+
+        pid->Dbuf[2] = pid->Dbuf[1];
+        pid->Dbuf[1] = pid->Dbuf[0];
+        pid->Dbuf[0] = pid->N * pid->Dbuf[1] +
+                       (1.0f - pid->N) * (pid->error[0] - pid->error[1]);
+        pid->Dout = pid->Kd * pid->Dbuf[0];
+
+        LimitMax(pid->Iout, pid->max_iout);
+        pid->out = pid->Pout + pid->Iout + pid->Dout;
+        LimitMax(pid->out, pid->max_out);
+    } else if (pid->mode == PID_DELTA) {
+        pid->Pout = pid->Kp * (pid->error[0] - pid->error[1]);
+        pid->Iout = pid->Ki * pid->error[0];
+
+        pid->Dbuf[2] = pid->Dbuf[1];
+        pid->Dbuf[1] = pid->Dbuf[0];
+        pid->Dbuf[0] = pid->error[0] - 2.0f * pid->error[1] + pid->error[2];
+        pid->Dout = pid->Kd * pid->Dbuf[0];
+
+        pid->out += pid->Pout + pid->Iout + pid->Dout;
+        LimitMax(pid->out, pid->max_out);
+    }
+
+    return pid->out;
 }
+
+void PID_clear(pid_type_def *pid)
+{
+    if (pid == NULL) {
+        return;
+    }
+
+    pid->error[0] = pid->error[1] = pid->error[2] = 0.0f;
+    pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
+    pid->out = pid->Pout = pid->Iout = pid->Dout = 0.0f;
+    pid->fdb = pid->set = 0.0f;
+}
+

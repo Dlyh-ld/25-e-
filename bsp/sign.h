@@ -1,14 +1,13 @@
 #ifndef SIGN_H_
 #define SIGN_H_
 
-void GPIO_OpenLaser();
-void GPIO_OffLaser();
+void GPIO_OpenLaser(void);
+void GPIO_CloseLaser(void);
 
-void GPIO_OpenGimbalSign();
-void GPIO_OffGimbalSign();
+void GPIO_OpenGimbalSign(void);
+void GPIO_CloseGimbalSign(void);
 
-void GPIO_OpenMotorSign();
-void GPIO_OffMotorSign();
-
+void GPIO_OpenMotorSign(void);
+void GPIO_CloseMotorSign(void);
 
 #endif

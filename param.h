@@ -1,10 +1,5 @@
 #define WHEEL_DIA 4.5
 
-#define KEY_DEBOUNCE_MS 20U
-
-#define LINEAR_SPEED = 600U;
-#define TURN_SPEED = 390U;
-
 #define TRACK_KP          0.03f
 #define TRACK_KI          0.0f
 #define TRACK_KD          0.10f
@@ -14,7 +9,7 @@
 #define SPEED_KD       0.0f
 
 #define MOTOR_MaxIout     400U
-#define MOTOR_MaxOut      1600U
+#define MOTOR_MaxOut      960U
 #define MOTOR_MinOut      180U
 
 
